@@ -18,15 +18,17 @@ package com.google.common.collect;
 
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implementation of {@link Multimap} using hash tables.
@@ -49,7 +51,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * @since 2.0
  */
 @GwtCompatible(serializable = true, emulated = true)
-@ElementTypesAreNonnullByDefault
 public final class HashMultimap<K extends @Nullable Object, V extends @Nullable Object>
     extends HashMultimapGwtSerializationDependencies<K, V> {
   private static final int DEFAULT_VALUES_PER_KEY = 2;
@@ -59,8 +60,9 @@ public final class HashMultimap<K extends @Nullable Object, V extends @Nullable 
   /**
    * Creates a new, empty {@code HashMultimap} with the default initial capacities.
    *
-   * <p>This method will soon be deprecated in favor of {@code
-   * MultimapBuilder.hashKeys().hashSetValues().build()}.
+   * <p>You may also consider the equivalent {@code
+   * MultimapBuilder.hashKeys().hashSetValues().build()}, which provides more control over the
+   * underlying data structure.
    */
   public static <K extends @Nullable Object, V extends @Nullable Object>
       HashMultimap<K, V> create() {
@@ -71,8 +73,9 @@ public final class HashMultimap<K extends @Nullable Object, V extends @Nullable 
    * Constructs an empty {@code HashMultimap} with enough capacity to hold the specified numbers of
    * keys and values without rehashing.
    *
-   * <p>This method will soon be deprecated in favor of {@code
-   * MultimapBuilder.hashKeys(expectedKeys).hashSetValues(expectedValuesPerKey).build()}.
+   * <p>You may also consider the equivalent {@code
+   * MultimapBuilder.hashKeys(expectedKeys).hashSetValues(expectedValuesPerKey).build()}, which
+   * provides more control over the underlying data structure.
    *
    * @param expectedKeys the expected number of distinct keys
    * @param expectedValuesPerKey the expected average number of values per key
@@ -89,8 +92,9 @@ public final class HashMultimap<K extends @Nullable Object, V extends @Nullable 
    * key-value mapping appears multiple times in the input multimap, it only appears once in the
    * constructed multimap.
    *
-   * <p>This method will soon be deprecated in favor of {@code
-   * MultimapBuilder.hashKeys().hashSetValues().build(multimap)}.
+   * <p>You may also consider the equivalent {@code
+   * MultimapBuilder.hashKeys().hashSetValues().build(multimap)}, which provides more control over
+   * the underlying data structure.
    *
    * @param multimap the multimap whose contents are copied to this multimap
    */
@@ -131,12 +135,14 @@ public final class HashMultimap<K extends @Nullable Object, V extends @Nullable 
    *     key, number of values for that key, and the key's values
    */
   @GwtIncompatible // java.io.ObjectOutputStream
+  @J2ktIncompatible
   private void writeObject(ObjectOutputStream stream) throws IOException {
     stream.defaultWriteObject();
     Serialization.writeMultimap(this, stream);
   }
 
   @GwtIncompatible // java.io.ObjectInputStream
+  @J2ktIncompatible
   private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
     stream.defaultReadObject();
     expectedValuesPerKey = DEFAULT_VALUES_PER_KEY;
@@ -146,6 +152,5 @@ public final class HashMultimap<K extends @Nullable Object, V extends @Nullable 
     Serialization.populateMultimap(this, stream, distinctKeys);
   }
 
-  @GwtIncompatible // Not needed in emulated source
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible @Serial private static final long serialVersionUID = 0;
 }

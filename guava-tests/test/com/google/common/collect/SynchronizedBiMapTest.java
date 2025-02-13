@@ -26,18 +26,23 @@ import com.google.common.collect.testing.features.MapFeature;
 import com.google.common.collect.testing.google.BiMapInverseTester;
 import com.google.common.collect.testing.google.BiMapTestSuiteBuilder;
 import com.google.common.collect.testing.google.TestStringBiMapGenerator;
+import java.io.Serial;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.BiFunction;
 import junit.framework.TestSuite;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Tests for {@code Synchronized#biMap}.
  *
  * @author Mike Bostock
  */
+@NullUnmarked
 public class SynchronizedBiMapTest extends SynchronizedMapTest {
 
+  @AndroidIncompatible // test-suite builders
   public static TestSuite suite() {
     TestSuite suite = new TestSuite(SynchronizedBiMapTest.class);
     suite.addTest(
@@ -76,10 +81,10 @@ public class SynchronizedBiMapTest extends SynchronizedMapTest {
     return outer;
   }
 
+  @AndroidIncompatible // test-suite builders
   public static final class SynchronizedHashBiMapGenerator extends TestStringBiMapGenerator {
     @Override
     protected BiMap<String, String> create(Entry<String, String>[] entries) {
-      Object mutex = new Object();
       BiMap<String, String> result = HashBiMap.create();
       for (Entry<String, String> entry : entries) {
         checkArgument(!result.containsKey(entry.getKey()));
@@ -89,6 +94,7 @@ public class SynchronizedBiMapTest extends SynchronizedMapTest {
     }
   }
 
+  @AndroidIncompatible // test-suite builders
   public static final class SynchTestingBiMapGenerator extends TestStringBiMapGenerator {
     @Override
     protected BiMap<String, String> create(Entry<String, String>[] entries) {
@@ -112,7 +118,7 @@ public class SynchronizedBiMapTest extends SynchronizedMapTest {
     }
 
     @Override
-    public V forcePut(K key, V value) {
+    public @Nullable V forcePut(K key, V value) {
       assertTrue(Thread.holdsLock(mutex));
       return delegate.forcePut(key, value);
     }
@@ -135,7 +141,7 @@ public class SynchronizedBiMapTest extends SynchronizedMapTest {
       return delegate.values();
     }
 
-    private static final long serialVersionUID = 0;
+    @Serial private static final long serialVersionUID = 0;
   }
 
   public void testForcePut() {

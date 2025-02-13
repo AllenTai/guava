@@ -19,10 +19,12 @@ package com.google.common.collect;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -43,9 +45,7 @@ import java.util.Queue;
  * @author Kurt Alfred Kluever
  * @since 15.0
  */
-@Beta
 @GwtCompatible
-@ElementTypesAreNonnullByDefault
 public final class EvictingQueue<E> extends ForwardingQueue<E> implements Serializable {
 
   private final Queue<E> delegate;
@@ -127,6 +127,7 @@ public final class EvictingQueue<E> extends ForwardingQueue<E> implements Serial
   }
 
   @Override
+  @J2ktIncompatible // Incompatible return type change. Use inherited implementation
   public Object[] toArray() {
     /*
      * If we could, we'd declare the no-arg `Collection.toArray()` to return "Object[] but elements
@@ -141,5 +142,5 @@ public final class EvictingQueue<E> extends ForwardingQueue<E> implements Serial
     return super.toArray();
   }
 
-  private static final long serialVersionUID = 0L;
+  @GwtIncompatible @J2ktIncompatible @Serial private static final long serialVersionUID = 0L;
 }

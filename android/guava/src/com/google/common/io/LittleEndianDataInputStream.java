@@ -14,8 +14,8 @@
 
 package com.google.common.io;
 
-import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -39,9 +39,8 @@ import java.io.InputStream;
  * @author Keith Bottner
  * @since 8.0
  */
-@Beta
+@J2ktIncompatible
 @GwtIncompatible
-@ElementTypesAreNonnullByDefault
 public final class LittleEndianDataInputStream extends FilterInputStream implements DataInput {
 
   /**
@@ -80,7 +79,7 @@ public final class LittleEndianDataInputStream extends FilterInputStream impleme
   @Override
   public int readUnsignedByte() throws IOException {
     int b1 = in.read();
-    if (0 > b1) {
+    if (b1 < 0) {
       throw new EOFException();
     }
 
@@ -231,7 +230,7 @@ public final class LittleEndianDataInputStream extends FilterInputStream impleme
   private byte readAndCheckByte() throws IOException, EOFException {
     int b1 = in.read();
 
-    if (-1 == b1) {
+    if (b1 == -1) {
       throw new EOFException();
     }
 

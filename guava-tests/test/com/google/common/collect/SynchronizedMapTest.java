@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.Synchronized.SynchronizedCollection;
 import com.google.common.collect.Synchronized.SynchronizedSet;
 import com.google.common.testing.SerializableTester;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,14 +29,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import junit.framework.TestCase;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Tests for {@code Synchronized#map}.
  *
  * @author Mike Bostock
  */
+@NullUnmarked
 public class SynchronizedMapTest extends TestCase {
-  public final Object mutex = new Integer(1); // something Serializable
+  public final Object mutex = new Object[0]; // something Serializable
 
   protected <K, V> Map<K, V> create() {
     TestMap<K, V> inner = new TestMap<>(new HashMap<K, V>(), mutex);
@@ -71,7 +75,7 @@ public class SynchronizedMapTest extends TestCase {
     }
 
     @Override
-    public V remove(Object object) {
+    public @Nullable V remove(Object object) {
       assertTrue(Thread.holdsLock(mutex));
       return super.remove(object);
     }
@@ -95,13 +99,13 @@ public class SynchronizedMapTest extends TestCase {
     }
 
     @Override
-    public V get(Object key) {
+    public @Nullable V get(Object key) {
       assertTrue(Thread.holdsLock(mutex));
       return super.get(key);
     }
 
     @Override
-    public V put(K key, V value) {
+    public @Nullable V put(K key, V value) {
       assertTrue(Thread.holdsLock(mutex));
       return super.put(key, value);
     }
@@ -131,7 +135,7 @@ public class SynchronizedMapTest extends TestCase {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
       assertTrue(Thread.holdsLock(mutex));
       return super.equals(obj);
     }
@@ -148,7 +152,7 @@ public class SynchronizedMapTest extends TestCase {
       return super.toString();
     }
 
-    private static final long serialVersionUID = 0;
+    @Serial private static final long serialVersionUID = 0;
   }
 
   /*

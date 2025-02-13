@@ -17,7 +17,6 @@ package com.google.common.base;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.GwtIncompatible;
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import javax.annotation.CheckForNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Extracts non-overlapping substrings from an input string, typically by recognizing appearances of
@@ -100,7 +99,6 @@ import javax.annotation.CheckForNull;
  * @since 1.0
  */
 @GwtCompatible(emulated = true)
-@ElementTypesAreNonnullByDefault
 public final class Splitter {
   private final CharMatcher trimmer;
   private final boolean omitEmptyStrings;
@@ -143,10 +141,8 @@ public final class Splitter {
     checkNotNull(separatorMatcher);
 
     return new Splitter(
-        new Strategy() {
-          @Override
-          public SplittingIterator iterator(Splitter splitter, final CharSequence toSplit) {
-            return new SplittingIterator(splitter, toSplit) {
+        (splitter, toSplit) ->
+            new SplittingIterator(splitter, toSplit) {
               @Override
               int separatorStart(int start) {
                 return separatorMatcher.indexIn(toSplit, start);
@@ -156,9 +152,7 @@ public final class Splitter {
               int separatorEnd(int separatorPosition) {
                 return separatorPosition + 1;
               }
-            };
-          }
-        });
+            });
   }
 
   /**
@@ -175,10 +169,8 @@ public final class Splitter {
       return Splitter.on(separator.charAt(0));
     }
     return new Splitter(
-        new Strategy() {
-          @Override
-          public SplittingIterator iterator(Splitter splitter, CharSequence toSplit) {
-            return new SplittingIterator(splitter, toSplit) {
+        (splitter, toSplit) ->
+            new SplittingIterator(splitter, toSplit) {
               @Override
               public int separatorStart(int start) {
                 int separatorLength = separator.length();
@@ -199,9 +191,7 @@ public final class Splitter {
               public int separatorEnd(int separatorPosition) {
                 return separatorPosition + separator.length();
               }
-            };
-          }
-        });
+            });
   }
 
   /**
@@ -216,32 +206,30 @@ public final class Splitter {
    */
   @GwtIncompatible // java.util.regex
   public static Splitter on(Pattern separatorPattern) {
-    return on(new JdkPattern(separatorPattern));
+    return onPatternInternal(new JdkPattern(separatorPattern));
   }
 
-  private static Splitter on(final CommonPattern separatorPattern) {
+  /** Internal utility; see {@link #on(Pattern)} instead. */
+  static Splitter onPatternInternal(final CommonPattern separatorPattern) {
     checkArgument(
         !separatorPattern.matcher("").matches(),
         "The pattern may not match the empty string: %s",
         separatorPattern);
 
     return new Splitter(
-        new Strategy() {
-          @Override
-          public SplittingIterator iterator(final Splitter splitter, CharSequence toSplit) {
-            final CommonMatcher matcher = separatorPattern.matcher(toSplit);
-            return new SplittingIterator(splitter, toSplit) {
-              @Override
-              public int separatorStart(int start) {
-                return matcher.find(start) ? matcher.start() : -1;
-              }
+        (splitter, toSplit) -> {
+          final CommonMatcher matcher = separatorPattern.matcher(toSplit);
+          return new SplittingIterator(splitter, toSplit) {
+            @Override
+            public int separatorStart(int start) {
+              return matcher.find(start) ? matcher.start() : -1;
+            }
 
-              @Override
-              public int separatorEnd(int separatorPosition) {
-                return matcher.end();
-              }
-            };
-          }
+            @Override
+            public int separatorEnd(int separatorPosition) {
+              return matcher.end();
+            }
+          };
         });
   }
 
@@ -259,7 +247,7 @@ public final class Splitter {
    */
   @GwtIncompatible // java.util.regex
   public static Splitter onPattern(String separatorPattern) {
-    return on(Platform.compilePattern(separatorPattern));
+    return onPatternInternal(Platform.compilePattern(separatorPattern));
   }
 
   /**
@@ -284,10 +272,8 @@ public final class Splitter {
     checkArgument(length > 0, "The length may not be less than 1");
 
     return new Splitter(
-        new Strategy() {
-          @Override
-          public SplittingIterator iterator(final Splitter splitter, CharSequence toSplit) {
-            return new SplittingIterator(splitter, toSplit) {
+        (splitter, toSplit) ->
+            new SplittingIterator(splitter, toSplit) {
               @Override
               public int separatorStart(int start) {
                 int nextChunkStart = start + length;
@@ -298,9 +284,7 @@ public final class Splitter {
               public int separatorEnd(int separatorPosition) {
                 return separatorPosition;
               }
-            };
-          }
-        });
+            });
   }
 
   /**
@@ -331,7 +315,7 @@ public final class Splitter {
    * <p>For example, {@code Splitter.on(',').limit(3).split("a,b,c,d")} returns an iterable
    * containing {@code ["a", "b", "c,d"]}. When omitting empty strings, the omitted strings do not
    * count. Hence, {@code Splitter.on(',').limit(3).omitEmptyStrings().split("a,,,b,,,c,d")} returns
-   * an iterable containing {@code ["a", "b", "c,d"}. When trim is requested, all entries are
+   * an iterable containing {@code ["a", "b", "c,d"]}. When trim is requested, all entries are
    * trimmed, including the last. Hence {@code Splitter.on(',').limit(3).trimResults().split(" a , b
    * , c , d ")} results in {@code ["a", "b", "c , d"]}.
    *
@@ -376,7 +360,7 @@ public final class Splitter {
   /**
    * Splits {@code sequence} into string components and makes them available through an {@link
    * Iterator}, which may be lazily evaluated. If you want an eagerly computed {@link List}, use
-   * {@link #splitToList(CharSequence)}. Java 8 users may prefer {@link #splitToStream} instead.
+   * {@link #splitToList(CharSequence)}. Java 8+ users may prefer {@link #splitToStream} instead.
    *
    * @param sequence the sequence of characters to split
    * @return an iteration over the segments split from the parameter
@@ -432,9 +416,8 @@ public final class Splitter {
    *
    * @param sequence the sequence of characters to split
    * @return a stream over the segments split from the parameter
-   * @since 28.2
+   * @since 28.2 (but only since 33.4.0 in the Android flavor)
    */
-  @Beta
   public Stream<String> splitToStream(CharSequence sequence) {
     // Can't use Streams.stream() from base
     return StreamSupport.stream(split(sequence).spliterator(), false);
@@ -446,7 +429,6 @@ public final class Splitter {
    *
    * @since 10.0
    */
-  @Beta
   public MapSplitter withKeyValueSeparator(String separator) {
     return withKeyValueSeparator(on(separator));
   }
@@ -457,7 +439,6 @@ public final class Splitter {
    *
    * @since 14.0
    */
-  @Beta
   public MapSplitter withKeyValueSeparator(char separator) {
     return withKeyValueSeparator(on(separator));
   }
@@ -481,7 +462,6 @@ public final class Splitter {
    *
    * @since 10.0
    */
-  @Beta
   public MapSplitter withKeyValueSeparator(Splitter keyValueSplitter) {
     return new MapSplitter(this, keyValueSplitter);
   }
@@ -494,7 +474,6 @@ public final class Splitter {
    *
    * @since 10.0
    */
-  @Beta
   public static final class MapSplitter {
     private static final String INVALID_ENTRY_MESSAGE = "Chunk [%s] is not a valid entry";
     private final Splitter outerSplitter;
@@ -566,9 +545,8 @@ public final class Splitter {
       this.toSplit = toSplit;
     }
 
-    @CheckForNull
     @Override
-    protected String computeNext() {
+    protected @Nullable String computeNext() {
       /*
        * The returned string will be from the end of the last match to the beginning of the next
        * one. nextStart is the start position of the returned substring, while offset is the place

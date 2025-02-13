@@ -17,11 +17,15 @@
 package com.google.common.eventbus;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.google.common.testing.EqualsTester;
+import java.io.Serial;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import junit.framework.TestCase;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Tests for {@link Subscriber}.
@@ -29,13 +33,14 @@ import junit.framework.TestCase;
  * @author Cliff Biffle
  * @author Colin Decker
  */
+@NullUnmarked
 public class SubscriberTest extends TestCase {
 
   private static final Object FIXTURE_ARGUMENT = new Object();
 
   private EventBus bus;
   private boolean methodCalled;
-  private Object methodArgument;
+  private @Nullable Object methodArgument;
 
   @Override
   protected void setUp() throws Exception {
@@ -69,23 +74,18 @@ public class SubscriberTest extends TestCase {
     Method method = getTestSubscriberMethod("exceptionThrowingMethod");
     Subscriber subscriber = Subscriber.create(bus, this, method);
 
-    try {
-      subscriber.invokeSubscriberMethod(FIXTURE_ARGUMENT);
-      fail("Subscribers whose methods throw must throw InvocationTargetException");
-    } catch (InvocationTargetException expected) {
-      assertThat(expected).hasCauseThat().isInstanceOf(IntentionalException.class);
-    }
+    InvocationTargetException expected =
+        assertThrows(
+            InvocationTargetException.class,
+            () -> subscriber.invokeSubscriberMethod(FIXTURE_ARGUMENT));
+    assertThat(expected).hasCauseThat().isInstanceOf(IntentionalException.class);
   }
 
   public void testInvokeSubscriberMethod_errorPassthrough() throws Throwable {
     Method method = getTestSubscriberMethod("errorThrowingMethod");
     Subscriber subscriber = Subscriber.create(bus, this, method);
 
-    try {
-      subscriber.invokeSubscriberMethod(FIXTURE_ARGUMENT);
-      fail("Subscribers whose methods throw Errors must rethrow them");
-    } catch (JudgmentError expected) {
-    }
+    assertThrows(JudgmentError.class, () -> subscriber.invokeSubscriberMethod(FIXTURE_ARGUMENT));
   }
 
   public void testEquals() throws Exception {
@@ -128,7 +128,7 @@ public class SubscriberTest extends TestCase {
   /** Local exception subclass to check variety of exception thrown. */
   class IntentionalException extends Exception {
 
-    private static final long serialVersionUID = -2500191180248181379L;
+    @Serial private static final long serialVersionUID = -2500191180248181379L;
   }
 
   @Subscribe
@@ -143,6 +143,6 @@ public class SubscriberTest extends TestCase {
   /** Local Error subclass to check variety of error thrown. */
   class JudgmentError extends Error {
 
-    private static final long serialVersionUID = 634248373797713373L;
+    @Serial private static final long serialVersionUID = 634248373797713373L;
   }
 }

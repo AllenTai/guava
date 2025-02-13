@@ -15,15 +15,17 @@
 package com.google.common.cache;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.CheckForNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility {@link CacheLoader} implementations intended for use in testing.
@@ -31,6 +33,7 @@ import javax.annotation.CheckForNull;
  * @author mike nonemacher
  */
 @GwtCompatible(emulated = true)
+@NullUnmarked
 class TestingCacheLoaders {
 
   /**
@@ -57,7 +60,7 @@ class TestingCacheLoaders {
   }
 
   /** Returns a {@link CacheLoader} that returns the given {@code constant} for every request. */
-  static <K, V> ConstantLoader<K, V> constantLoader(@CheckForNull V constant) {
+  static <K, V> ConstantLoader<K, V> constantLoader(@Nullable V constant) {
     return new ConstantLoader<>(constant);
   }
 
@@ -134,6 +137,7 @@ class TestingCacheLoaders {
     private final AtomicInteger countLoad = new AtomicInteger();
     private final AtomicInteger countReload = new AtomicInteger();
 
+    @CanIgnoreReturnValue // Sure, why not?
     @Override
     public Integer load(Integer key) {
       countLoad.incrementAndGet();
@@ -144,7 +148,7 @@ class TestingCacheLoaders {
     @Override
     public ListenableFuture<Integer> reload(Integer key, Integer oldValue) {
       countReload.incrementAndGet();
-      return Futures.immediateFuture(oldValue + 1);
+      return immediateFuture(oldValue + 1);
     }
 
     public int getLoadCount() {

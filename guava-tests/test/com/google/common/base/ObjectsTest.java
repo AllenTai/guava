@@ -18,8 +18,10 @@ package com.google.common.base;
 
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import com.google.common.testing.NullPointerTester;
 import junit.framework.TestCase;
+import org.jspecify.annotations.NullUnmarked;
 
 /**
  * Tests for {@link Objects}.
@@ -27,8 +29,10 @@ import junit.framework.TestCase;
  * @author Laurence Gonsalves
  */
 @GwtCompatible(emulated = true)
+@NullUnmarked
 public class ObjectsTest extends TestCase {
 
+  @SuppressWarnings("YodaCondition") // test of reversed call
   public void testEqual() throws Exception {
     assertTrue(Objects.equal(1, 1));
     assertTrue(Objects.equal(null, null));
@@ -46,7 +50,7 @@ public class ObjectsTest extends TestCase {
 
   public void testHashCode() throws Exception {
     int h1 = Objects.hashCode(1, "two", 3.0);
-    int h2 = Objects.hashCode(new Integer(1), new String("two"), new Double(3.0));
+    int h2 = Objects.hashCode(Integer.valueOf(1), new String("two"), Double.valueOf(3.0));
     // repeatable
     assertEquals(h1, h2);
 
@@ -58,6 +62,7 @@ public class ObjectsTest extends TestCase {
     assertTrue(Objects.hashCode(1, 2, 3) != Objects.hashCode(2, 3, 1));
   }
 
+  @J2ktIncompatible
   @GwtIncompatible // NullPointerTester
   public void testNullPointers() {
     NullPointerTester tester = new NullPointerTester();

@@ -14,7 +14,6 @@
 
 package com.google.common.util.concurrent;
 
-import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtCompatible;
 
 /**
@@ -22,16 +21,16 @@ import com.google.common.annotations.GwtCompatible;
  *
  * @since 16.0
  */
-@Beta
 @GwtCompatible
-@ElementTypesAreNonnullByDefault
 public final class Runnables {
-
-  private static final Runnable EMPTY_RUNNABLE =
-      new Runnable() {
-        @Override
-        public void run() {}
-      };
+  /*
+   * If we inline this, it's not longer a singleton under Android (at least under the Lollipop
+   * version that we're testing under) or J2CL.
+   *
+   * That's not necessarily a real-world problem, but it does break our tests.
+   */
+  @SuppressWarnings({"InlineLambdaConstant", "UnnecessaryLambda"})
+  private static final Runnable EMPTY_RUNNABLE = () -> {};
 
   /** Returns a {@link Runnable} instance that does nothing when run. */
   public static Runnable doNothing() {

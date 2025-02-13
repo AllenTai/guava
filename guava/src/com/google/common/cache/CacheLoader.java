@@ -15,14 +15,16 @@
 package com.google.common.cache;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -55,7 +57,6 @@ import java.util.concurrent.Executor;
  * @since 10.0
  */
 @GwtCompatible(emulated = true)
-@ElementTypesAreNonnullByDefault
 public abstract class CacheLoader<K, V> {
   /** Constructor for use by subclasses. */
   protected CacheLoader() {}
@@ -97,7 +98,7 @@ public abstract class CacheLoader<K, V> {
   public ListenableFuture<V> reload(K key, V oldValue) throws Exception {
     checkNotNull(key);
     checkNotNull(oldValue);
-    return Futures.immediateFuture(load(key));
+    return immediateFuture(load(key));
   }
 
   /**
@@ -132,6 +133,8 @@ public abstract class CacheLoader<K, V> {
    * Returns a cache loader that uses {@code function} to load keys, without supporting either
    * reloading or bulk loading. This allows creating a cache loader using a lambda expression.
    *
+   * <p>The returned object is serializable if {@code function} is serializable.
+   *
    * @param function the function to be used for loading values; must never return {@code null}
    * @return a cache loader that loads values by passing each key to {@code function}
    */
@@ -143,6 +146,8 @@ public abstract class CacheLoader<K, V> {
    * Returns a cache loader based on an <i>existing</i> supplier instance. Note that there's no need
    * to create a <i>new</i> supplier just to pass it in here; just subclass {@code CacheLoader} and
    * implement {@link #load load} instead.
+   *
+   * <p>The returned object is serializable if {@code supplier} is serializable.
    *
    * @param supplier the supplier to be used for loading values; must never return {@code null}
    * @return a cache loader that loads values by calling {@link Supplier#get}, irrespective of the
@@ -165,7 +170,7 @@ public abstract class CacheLoader<K, V> {
       return computingFunction.apply(checkNotNull(key));
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible @Serial private static final long serialVersionUID = 0;
   }
 
   /**
@@ -217,7 +222,7 @@ public abstract class CacheLoader<K, V> {
       return computingSupplier.get();
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible @Serial private static final long serialVersionUID = 0;
   }
 
   /**

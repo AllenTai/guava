@@ -17,13 +17,15 @@
 package com.google.common.collect;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
+import java.io.Serial;
 import java.io.Serializable;
-import javax.annotation.CheckForNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /** An ordering that treats {@code null} as less than all other values. */
 @GwtCompatible(serializable = true)
-@ElementTypesAreNonnullByDefault
 final class NullsFirstOrdering<T extends @Nullable Object> extends Ordering<@Nullable T>
     implements Serializable {
   final Ordering<? super T> ordering;
@@ -33,7 +35,7 @@ final class NullsFirstOrdering<T extends @Nullable Object> extends Ordering<@Nul
   }
 
   @Override
-  public int compare(@CheckForNull T left, @CheckForNull T right) {
+  public int compare(@Nullable T left, @Nullable T right) {
     if (left == right) {
       return 0;
     }
@@ -50,7 +52,7 @@ final class NullsFirstOrdering<T extends @Nullable Object> extends Ordering<@Nul
   @SuppressWarnings("nullness") // should be safe, but not sure if we can avoid the warning
   public <S extends @Nullable T> Ordering<S> reverse() {
     // ordering.reverse() might be optimized, so let it do its thing
-    return ordering.reverse().nullsLast();
+    return ordering.<T>reverse().<@NonNull S>nullsLast();
   }
 
   @SuppressWarnings("unchecked") // still need the right way to explain this
@@ -60,13 +62,12 @@ final class NullsFirstOrdering<T extends @Nullable Object> extends Ordering<@Nul
   }
 
   @Override
-  @SuppressWarnings("nullness") // probably a bug in our checker?
   public <S extends @Nullable T> Ordering<@Nullable S> nullsLast() {
-    return ordering.nullsLast();
+    return ordering.<@NonNull S>nullsLast();
   }
 
   @Override
-  public boolean equals(@CheckForNull Object object) {
+  public boolean equals(@Nullable Object object) {
     if (object == this) {
       return true;
     }
@@ -87,5 +88,5 @@ final class NullsFirstOrdering<T extends @Nullable Object> extends Ordering<@Nul
     return ordering + ".nullsFirst()";
   }
 
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible @Serial private static final long serialVersionUID = 0;
 }
